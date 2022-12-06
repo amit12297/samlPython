@@ -6,15 +6,14 @@ from saml2.config import Config
 from saml2.mdstore import InMemoryMetaData
 from saml2.sigver import get_xmlsec_binary
 
-
-@dataclass
-class IdPConfig:
-    entity_id: str
-    single_sign_on_url: str
-    x509_cert: str
-
-    def __hash__(self):
-        return hash(self.entity_id)
+# @dataclass
+# class IdPConfig:
+#     entity_id: str
+#     single_sign_on_url: str
+#     x509_cert: str
+#
+#     def __hash__(self):
+#         return hash(self.entity_id)
 
 
 if get_xmlsec_binary:
@@ -28,7 +27,7 @@ def saml_client():
         # Currently xmlsec1 binaries are used for all the signing and encryption stuff.This option defines where the binary is situated.
         "xmlsec_binary": xmlsec_path,
         # The SP ID. It is recommended that the entityid should point to a real webpage where the metadata for the entity can be found.
-        "entityid": "http://localhost:8000/sample_sp",
+        "entityid": "http://ec2-15-207-110-124.ap-south-1.compute.amazonaws.com",
         # Indicates that attributes that are not recognized (they are not configured in attribute-mapping), will not be discarded.
         "allow_unknown_attributes": True,
         "service": {
@@ -36,7 +35,7 @@ def saml_client():
                 "endpoints": {
                     "assertion_consumer_service": [
                         ##as mentioned in the sequence diagram we can use either redirect or post here.
-                        ("http://localhost:8000/saml2/acs/", BINDING_HTTP_POST),
+                        ("http://ec2-15-207-110-124.ap-south-1.compute.amazonaws.com/saml2/acs/", BINDING_HTTP_POST),
                     ]
                 },
                 # Don't verify that the incoming requests originate from us via the built-in cache for authn request ids in pysaml2
@@ -44,25 +43,16 @@ def saml_client():
                 # Don't sign authn requests, since signed requests only make sense in a situation where you control both the SP and IdP
                 "authn_requests_signed": False,
                 # Assertion must be signed
-                "want_assertions_signed": True,
+                "want_assertions_signed": False,
                 # Response signing is optional.
                 "want_response_signed": False,
             }
         },
-        "metadata": [
-            {
-                "class": "sample_sp.views.MetaDataIdP",
-                "metadata": [
-                    (
-                        IdPConfig(
-                            entity_id="jumpcloud/twingate/sample-sp",
-                            single_sign_on_url="https://sso.jumpcloud.com/saml2/saml2",
-                            x509_cert="<change_it>"
-                        ),
-                    )
-                ],
-            }
-        ],
+        "metadata": {
+            "local": [
+                "/home/app/webapp/sample_sp/idp.xml",
+            ],
+        },
     }
 
     config = Config()
